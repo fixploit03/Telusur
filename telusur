@@ -12,7 +12,13 @@ b="\e[1;34m" # Biru
 p="\e[1;37m" # Putih
 r="\e[0m"    # Reset
 
+if [[ "$EUID" -ne 0 ]]; then
+        echo -e "${p}[${m}-${p}] Script ini harus dijalankan sebagai root!${r}"
+	exit 1
+fi
+
 clear
+
 echo -e "${p}===========================================${r}"
 echo -e "${m}           ╔╦╗╔═╗╦  ╦ ╦╔═╗╦ ╦╦═╗           ${r}"
 echo -e "${m}            ║ ║╣ ║  ║ ║╚═╗║ ║╠╦╝           ${r}"
