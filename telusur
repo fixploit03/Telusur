@@ -1,0 +1,107 @@
+#!/bin/bash
+# -------------------------------------------------------
+# [Telusur.sh]
+# Cari File dan Folder yang Disembunyikan Dalam Direktori
+# -------------------------------------------------------
+
+# Variabel warna
+m="\e[1;31m" # Merah
+h="\e[1;32m" # Hijau
+k="\e[1;33m" # Kuning
+b="\e[1;34m" # Biru
+p="\e[1;37m" # Putih
+r="\e[0m"    # Reset
+
+clear
+echo -e "${p}===========================================${r}"
+echo -e "${m}           ╔╦╗╔═╗╦  ╦ ╦╔═╗╦ ╦╦═╗           ${r}"
+echo -e "${m}            ║ ║╣ ║  ║ ║╚═╗║ ║╠╦╝           ${r}"
+echo -e "${m}            ╩ ╚═╝╩═╝╚═╝╚═╝╚═╝╩╚═           ${r}"
+echo -e "${p}  Cari File dan Folder yang Disembunyikan  ${r}"
+echo -e "${p}              Dalam Direktori              ${r}"
+echo -e "${r}                                           "
+echo -e "${h}   https://github.com/fixploit03/Telusur   ${r}"
+echo -e "${p}===========================================${r}"
+echo -e ""
+
+while true; do
+	read -p $'\e[1;37m[\e[1;34m#\e[1;37m] Masukkan nama direktori: ' direktori
+	if [[ -z "${direktori}" ]]; then
+		echo -e "${p}[${m}-${p}] Nama direktori tidak boleh kosong.${r}"
+		continue
+	fi
+	if [[ ! -d "${direktori}" ]]; then
+		echo -e "${p}[${m}-${p}] Direktori '${direktori}' tidak ditemukan.${r}"
+	else
+		echo -e "${p}[${h}+${p}] Direktori '${direktori}' ditemukan.${r}"
+		break
+	fi
+done
+
+echo -e "${p}[${b}*${p}] Mencari seluruh file dan folder yang disembunyikan dalam direktori '${direktori}'...${r}"
+echo ""
+
+cari=($(find "${direktori}" -name ".*" 2>/dev/null))
+
+if [[ "${#cari[@]}" -gt 0 ]]; then
+	jumlah_file=0
+	jumlah_folder=0
+        waktu=$(date +"%d-%m-%Y_%H-%M-%S")
+	folder_utama="hasil_pencarian"
+	folder_hasil="${folder_utama}_${waktu}"
+
+	# folder utama
+        if [[ ! -d "${folder_utama}" ]]; then
+                mkdir "${folder_utama}"
+        fi
+
+	# folder hasil
+        if [[ ! -d "${folder_hasil}" ]]; then
+                mkdir -p "${folder_utama}/${folder_hasil}"
+        fi
+
+	nama_file="${folder_utama}/${folder_hasil}/${folder_hasil}.csv"
+        touch "${nama_file}"
+	echo "No, Jenis, Nama, Ukuran" >> "${nama_file}"
+
+	counter=1
+
+        for isi_direktori in "${cari[@]}"; do
+	        # Mendapatkan ukuran file dalam byte
+		ukuran_byte=$(stat -c%s "${isi_direktori}" 2>/dev/null)
+
+		# Menentukan satuan yang sesuai
+		if [[ "${ukuran_byte}" -lt 1024 ]]; then
+	                ukuran="${ukuran_byte} B"
+		elif [[ "${ukuran_byte}" -lt $((1024 * 1024)) ]]; then
+	                ukuran_kb=$(echo "scale=2; ${ukuran_byte} / 1024" | bc)
+			ukuran="${ukuran_kb} KB"
+		elif [[ "${ukuran_byte}" -lt $((1024 * 1024 * 1024)) ]]; then
+		        ukuran_mb=$(echo "scale=2; ${ukuran_byte} / 1024 / 1024" | bc)
+			ukuran="${ukuran_mb} MB"
+		else
+			ukuran_gb=$(echo "scale=2; ${ukuran_byte} / 1024 / 1024 / 1024" | bc)
+			ukuran="${ukuran_gb} GB"
+		fi
+
+		if [[ -f "${isi_direktori}" ]]; then
+		        echo -e "${p}[${h}FOUND${p}] [${r}File${p}] '${isi_direktori}' [${k}${ukuran}${p}]${r}"
+			echo "${counter}, File, ${isi_direktori}, ${ukuran}" >> "${nama_file}"
+			((jumlah_file+=1))
+			((counter+=1))
+		elif [[ -d "${isi_direktori}" ]]; then
+                        echo -e "${p}[${h}FOUND${p}] [${b}Folder${p}] '${isi_direktori}' [${k}${ukuran}${p}]${r}"
+			echo "${counter}, Folder, ${isi_direktori}, ${ukuran}" >> "${nama_file}"
+			((jumlah_folder+=1))
+			((counter+=1))
+		fi
+	done
+
+	echo ""
+        echo "" >> "${nama_file}"
+	echo -e "${p}[${h}+${p}] Jumlah file yang disembunyikan: ${h}${jumlah_file}${r}"
+        echo -e "${p}[${h}+${p}] Jumlah folder yang disembunyikan: ${h}${jumlah_folder}${r}"
+        echo -e "${p}[${h}+${p}] Hasil pencarian disimpan di: ${h}${nama_file}${r}"
+else
+        echo -e "${p}[${m}-${p}] Tidak ada file atau folder tersembunyi yang ditemukan dalam '${direktori}'.${r}"
+fi
