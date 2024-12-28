@@ -17,6 +17,8 @@ if [[ "$EUID" -ne 0 ]]; then
 	exit 1
 fi
 
+trap 'echo -e "\n${p}[${m}-${p}] KeyboardInterrupt${r}"; exit 1' SIGINT
+
 clear
 
 echo -e "${p}===========================================${r}"
